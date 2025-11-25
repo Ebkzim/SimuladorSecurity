@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { AlertCircle, Shield, Lock } from "lucide-react";
 
 interface CredentialStuffingAlertProps {
@@ -10,70 +10,26 @@ interface CredentialStuffingAlertProps {
 
 export function CredentialStuffingAlert({ notificationId, onClose }: CredentialStuffingAlertProps) {
   const [loading, setLoading] = useState(false);
-  const [revealed, setRevealed] = useState(false);
 
   const handleAllow = async () => {
     setLoading(true);
-    setRevealed(true);
     await apiRequest('POST', '/api/notification/respond', { 
       notificationId, 
       accepted: true 
     });
-    setTimeout(() => onClose(), 300);
+    await queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
+    onClose();
   };
 
-  const handleDeny = async () => {
-    setLoading(true);
+  const handleClose = async () => {
     await apiRequest('POST', '/api/notification/respond', { 
       notificationId, 
       accepted: false 
     });
-    setTimeout(() => onClose(), 300);
+    await queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
+    onClose();
   };
 
-  if (revealed) {
-    return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-6 max-w-md w-full border-2 border-red-500">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h2 className="text-xl font-bold text-red-600">Credential Stuffing Detectado!</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded border border-red-200">
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                <strong>O que é:</strong> Um criminoso usando credenciais de vazamentos anteriores para acessar sua conta.
-              </p>
-
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                <strong>Como funciona:</strong> Milhares de senhas são testadas automaticamente até uma funcionar.
-              </p>
-
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                <strong>Proteção:</strong> Senhas únicas, 2FA e Cofre de Senhas impedem este tipo de ataque.
-              </p>
-            </div>
-
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                ✓ Você bloqueou este ataque! Suas credenciais não correspondem ao padrão esperado.
-              </p>
-            </div>
-          </div>
-
-          <Button 
-            onClick={onClose}
-            className="w-full mt-4"
-          >
-            Entendi
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in">
@@ -112,16 +68,17 @@ export function CredentialStuffingAlert({ notificationId, onClose }: CredentialS
             <Button 
               onClick={handleAllow}
               className="w-full bg-red-600 hover:bg-red-700"
+              disabled={loading}
             >
               Desbloquear Agora
             </Button>
             <Button 
-              onClick={handleDeny}
-              disabled={loading}
+              onClick={handleClose}
               variant="outline"
               className="w-full"
+              disabled={loading}
             >
-              Não Era Eu
+              Cancelar
             </Button>
           </div>
 

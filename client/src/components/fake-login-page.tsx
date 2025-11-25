@@ -24,24 +24,23 @@ export function FakeLoginPage({ gameState, notificationId, onClose }: FakeLoginP
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const respondMutation = useMutation({
-    mutationFn: (accepted: boolean) =>
-      apiRequest('POST', '/api/notification/respond', { 
-        notificationId, 
-        accepted 
-      }),
-    onSuccess: (_, accepted) => {
+    mutationFn: (data: { notificationId: string; email: string; password: string; accepted: boolean }) =>
+      apiRequest('POST', '/api/phishing/respond', data),
+    onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
       
-      if (accepted) {
+      const isEqual = response.emailMatches || response.passwordMatches;
+      
+      if (isEqual) {
         toast({
-          title: "Credenciais Comprometidas!",
-          description: "Você inseriu suas credenciais reais em um site falso de phishing.",
+          title: "Você digitou senha ou email reais!",
+          description: "Você perdeu por inserir suas credenciais reais em um site falso.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Você se protegeu!",
-          description: "Bom trabalho! Você não caiu no golpe de phishing.",
+          description: "Não perdeu pois nenhuma era igual à da sua conta.",
           variant: "default",
         });
       }
@@ -56,12 +55,22 @@ export function FakeLoginPage({ gameState, notificationId, onClose }: FakeLoginP
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    respondMutation.mutate(true);
+    respondMutation.mutate({
+      notificationId,
+      email,
+      password,
+      accepted: true,
+    });
   };
 
   const handleCancel = () => {
     setIsSubmitting(true);
-    respondMutation.mutate(false);
+    respondMutation.mutate({
+      notificationId,
+      email: "",
+      password: "",
+      accepted: false,
+    });
   };
 
   return (

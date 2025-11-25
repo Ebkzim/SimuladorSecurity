@@ -81,7 +81,7 @@ export function VirusPopups({ isActive, onClose, onAntiVirusIrisClicked }: Virus
       let template;
       
       if (antiVirusCounter % 4 === 0) {
-        template = popupTemplates[1]; // Anti-Virus Iris
+        template = popupTemplates[1];
       } else {
         const nonAntiVirusTemplates = popupTemplates.filter((_, i) => i !== 1);
         template = nonAntiVirusTemplates[Math.floor(Math.random() * nonAntiVirusTemplates.length)];

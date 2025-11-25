@@ -1,12 +1,8 @@
-// server/index.ts
 import express2 from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-
-// server/routes.ts
 import { createServer } from "http";
 
-// server/storage.ts
 function deepClone(obj) {
   return structuredClone(obj);
 }
@@ -94,12 +90,11 @@ function resetGameState(session2) {
   return deepClone(session2.gameState);
 }
 
-// shared/schema.ts
+
 import { z } from "zod";
 var securitySetupFlowSchema = z.object({
   twoFactorAuth: z.object({
     step: z.number().default(0),
-    // 0: not started, 1: choose method, 2: enter code, 3: save recovery codes, 4: complete
     method: z.enum(["app", "sms"]).optional(),
     code: z.string().optional(),
     completed: z.boolean().default(false)
@@ -168,7 +163,6 @@ var securityConfigSchema = z.object({
 });
 var attackFlowSchema = z.object({
   step: z.number().default(0),
-  // 0: not started, 1: recon, 2: execution, 3: outcome
   tool: z.string().optional(),
   command: z.string().optional(),
   progress: z.number().default(0)
@@ -189,7 +183,6 @@ var gameStateSchema = z.object({
     password: z.string().optional(),
     accountCreated: z.boolean().default(false),
     accountCreationStep: z.number().default(0),
-    // 0: not started, 1: profile, 2: credentials, 3: complete
     securityMeasures: z.object({
       twoFactorAuth: z.boolean().default(false),
       strongPassword: z.boolean().default(false),
@@ -226,7 +219,6 @@ var gameStateSchema = z.object({
     requiresAction: z.boolean().default(false),
     userFellFor: z.boolean().optional(),
     ctaLabel: z.string().optional(),
-    // "Saber Mais", "Confirmar", etc
     ctaType: z.enum(["phishing_learn_more", "confirm_2fa", "confirm_email", "confirm_email_verification"]).optional(),
     scenarioIndex: z.number().min(0).max(2).optional(),
     passwordStrength: z.number().optional()
@@ -432,7 +424,7 @@ var deletePasswordSchema = z.object({
   id: z.string()
 });
 
-// server/routes.ts
+
 import { randomUUID } from "crypto";
 function addActivityLog(gameState, actor, action, detail) {
   const newLog = {
@@ -489,12 +481,12 @@ function getAttackSuccessChance(attackId, gameState) {
   const config = gameState.casualUser.securityConfig || {};
   const passwordStrength = calculatePasswordStrength(gameState.casualUser.password || "");
   const allMeasuresActive = measures.twoFactorAuth && measures.strongPassword && measures.emailVerification && measures.securityQuestions && measures.backupEmail && measures.authenticatorApp && measures.smsBackup && measures.trustedDevices && measures.loginAlerts && measures.sessionManagement && measures.ipWhitelist && measures.passwordVault;
-  const allConfigurationsValid = passwordStrength >= 80 && // Senha forte configurada
-  config.ipWhitelist?.enabled && // IP Whitelist ativo
-  (config.ipWhitelist?.allowedIPs?.length ?? 0) > 0 && // Pelo menos 1 IP na whitelist
-  (config.trustedDevices?.devices?.length ?? 0) > 0 && // Pelo menos 1 dispositivo confiável
-  (config.loginAlerts?.emailAlerts || config.loginAlerts?.smsAlerts) && // Alertas configurados
-  config.smsBackup?.verified && // SMS backup verificado
+  const allConfigurationsValid = passwordStrength >= 80 &&
+  config.ipWhitelist?.enabled &&
+  (config.ipWhitelist?.allowedIPs?.length ?? 0) > 0 &&
+  (config.trustedDevices?.devices?.length ?? 0) > 0 &&
+  (config.loginAlerts?.emailAlerts || config.loginAlerts?.smsAlerts) &&
+  config.smsBackup?.verified &&
   (gameState.casualUser.passwordVault?.length ?? 0) >= 3;
   if (allMeasuresActive && allConfigurationsValid) {
     return 0;
@@ -679,6 +671,13 @@ function createNotification(attackId, gameState) {
       ctaLabel: "Continuar",
       ctaType: "mitm_alert",
       attackType: "man_in_the_middle"
+    },
+    zero_day_exploit: {
+      type: "security_alert",
+      title: "Alerta de Seguran\xE7a Cr\xEDtica",
+      message: "M\xFAltiplas tentativas de explora\xE7\xE3o de vulnerabilidade detectadas. Seu acesso pode estar em risco extremo.",
+      requiresAction: false,
+      attackType: "zero_day_exploit"
     }
   };
   const template = notifications[attackId] || notifications.phishing;
@@ -831,7 +830,6 @@ async function registerRoutes(app2) {
         securityMeasures: {
           ...currentState.casualUser.securityMeasures,
           strongPassword: strength >= 80
-          // Ativa se força >= 80% (todos os requisitos)
         },
         securityConfig: {
           ...currentState.casualUser.securityConfig,
@@ -957,7 +955,6 @@ async function registerRoutes(app2) {
         securityConfig: {
           ...currentState.casualUser.securityConfig,
           recoveryEmail: { email, verified: false }
-          // Aguardando confirmação
         }
       };
       const updatedState = updateGameState(req.session, {
@@ -990,7 +987,7 @@ async function registerRoutes(app2) {
       } else if (measure === "ipWhitelist" && currentConfig && "allowedIPs" in currentConfig && "allowedIPs" in config) {
         const existingIPs = currentConfig.allowedIPs || [];
         const newIPs = config.allowedIPs || [];
-        const ipSet = /* @__PURE__ */ new Set([...existingIPs, ...newIPs]);
+        const ipSet = new Set([...existingIPs, ...newIPs]);
         const uniqueIPs = Array.from(ipSet);
         mergedConfig = {
           enabled: config.enabled,
@@ -1089,6 +1086,57 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to delete notification" });
     }
   });
+  app2.post("/api/phishing/respond", async (req, res) => {
+    try {
+      const { notificationId, email, password, accepted } = req.body;
+      if (!notificationId) {
+        return res.status(400).json({ error: "Notification ID is required" });
+      }
+      const currentState = getGameState(req.session);
+      const notification = currentState.notifications.find((n) => n.id === notificationId);
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+      const emailMatches = email.toLowerCase() === (currentState.casualUser.email || "").toLowerCase();
+      const passwordMatches = password === currentState.casualUser.password;
+      const credentialsMatch = emailMatches || passwordMatches;
+      const updatedNotifications = currentState.notifications.map(
+        (n) => n.id === notificationId ? { ...n, isActive: false, userFellFor: credentialsMatch } : n
+      );
+      let accountCompromised = currentState.casualUser.accountCompromised;
+      let attacksSuccessful = currentState.hacker.attacksSuccessful;
+      if (credentialsMatch) {
+        accountCompromised = true;
+        attacksSuccessful += 1;
+      }
+      const updatedUser = {
+        ...currentState.casualUser,
+        accountCompromised
+      };
+      const tempState = {
+        ...currentState,
+        casualUser: updatedUser
+      };
+      const newVulnerability = calculateVulnerability(tempState);
+      const gameState = updateGameState(req.session, {
+        notifications: updatedNotifications,
+        casualUser: updatedUser,
+        hacker: {
+          ...currentState.hacker,
+          attacksSuccessful
+        },
+        vulnerabilityScore: newVulnerability
+      });
+      res.json({
+        emailMatches,
+        passwordMatches,
+        credentialsMatch,
+        gameState
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to respond to phishing" });
+    }
+  });
   app2.post("/api/notification/respond", async (req, res) => {
     try {
       const result = respondToNotificationSchema.safeParse(req.body);
@@ -1116,13 +1164,30 @@ async function registerRoutes(app2) {
         "session_hijacking",
         "man_in_the_middle"
       ];
-      if (accepted && notification.type === "phishing") {
+      if (accepted && notification.attackType === "malware_injection") {
+        accountCompromised = true;
+        attacksSuccessful += 1;
+      } else if (accepted && notification.type === "phishing") {
         accountCompromised = true;
         attacksSuccessful += 1;
       } else if (accepted && notification.type === "social_engineering") {
         accountCompromised = true;
       } else if (accepted && notification.type === "suspicious_login") {
         accountCompromised = true;
+      }
+      if (notification.attackType === "zero_day_exploit") {
+        const measures = currentState.casualUser.securityMeasures;
+        const config = currentState.casualUser.securityConfig || {};
+        const passwordStrength = calculatePasswordStrength(currentState.casualUser.password || "");
+        const hasAuthenticator = measures.authenticatorApp;
+        const hasTwoFactor = measures.twoFactorAuth;
+        const hasIPWhitelist = measures.ipWhitelist && config.ipWhitelist?.enabled && (config.ipWhitelist?.allowedIPs?.length ?? 0) > 0;
+        const hasSessionManagement = measures.sessionManagement;
+        const hasStrongDefenses = hasAuthenticator && hasTwoFactor && hasIPWhitelist && hasSessionManagement;
+        if (!hasStrongDefenses) {
+          accountCompromised = true;
+          attacksSuccessful += 1;
+        }
       }
       if (accepted && ATTACK_SCENARIOS.includes(notification.type)) {
         if (notification.type === "phishing") {
@@ -1394,13 +1459,13 @@ async function registerRoutes(app2) {
   return httpServer;
 }
 
-// server/vite.ts
+
 import express from "express";
 import fs from "fs";
 import path2 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
-// vite.config.ts
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -1434,13 +1499,13 @@ var vite_config_default = defineConfig({
   }
 });
 
-// server/vite.ts
+
 import { nanoid } from "nanoid";
 import { fileURLToPath as fileURLToPath2 } from "url";
 var __dirname2 = path2.dirname(fileURLToPath2(import.meta.url));
 var viteLogger = createLogger();
 function log(message, source = "express") {
-  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+  const formattedTime = (new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
@@ -1513,7 +1578,7 @@ function serveStatic(app2) {
   });
 }
 
-// server/index.ts
+
 var app = express2();
 app.use(express2.json({
   verify: (req, _res, buf) => {

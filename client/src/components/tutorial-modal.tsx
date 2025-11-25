@@ -21,7 +21,7 @@ const tutorialSteps = [
   {
     title: "Bem-vindo ao jogo de segurança digital!",
     description:
-      "Você vai controlar dois personagens ao mesmo tempo: um usuário casual e um hacker. Aprenda sobre segurança digital vendo como ataques funcionam e como se proteger.",
+      "Você pode controlar dois personagens ao mesmo tempo ou jogar com alguem: um usuário casual e um hacker. Aprenda sobre segurança digital vendo como ataques funcionam e como se proteger.",
     icon: Shield,
   },
   {

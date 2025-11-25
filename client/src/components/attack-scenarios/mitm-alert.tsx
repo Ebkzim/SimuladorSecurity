@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { AlertTriangle, Wifi, Lock } from "lucide-react";
 
 interface MitmAlertProps {
@@ -10,70 +10,26 @@ interface MitmAlertProps {
 
 export function MitmAlert({ notificationId, onClose }: MitmAlertProps) {
   const [loading, setLoading] = useState(false);
-  const [revealed, setRevealed] = useState(false);
 
   const handleContinue = async () => {
     setLoading(true);
-    setRevealed(true);
     await apiRequest('POST', '/api/notification/respond', { 
       notificationId, 
       accepted: true 
     });
-    setTimeout(() => onClose(), 300);
+    await queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
+    onClose();
   };
 
-  const handleLeave = async () => {
-    setLoading(true);
+  const handleClose = async () => {
     await apiRequest('POST', '/api/notification/respond', { 
       notificationId, 
       accepted: false 
     });
-    setTimeout(() => onClose(), 300);
+    await queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
+    onClose();
   };
 
-  if (revealed) {
-    return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-6 max-w-md w-full border-2 border-red-500">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
-            </div>
-            <h2 className="text-xl font-bold text-red-600">Man-in-the-Middle Detectado!</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded border border-red-200">
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                <strong>O que foi:</strong> Um criminoso interceptando sua conexão de internet.
-              </p>
-
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                <strong>Como funciona:</strong> Se você clicar em "Continuar", o criminoso vê TUDO que você digita.
-              </p>
-
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                <strong>Defesa:</strong> Sempre use VPN em Wi-Fi público e Dispositivos Confiáveis para detectar acessos estranhos.
-              </p>
-            </div>
-
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded border border-red-200">
-              <p className="text-sm text-red-800 dark:text-red-200">
-                ✗ Você continuou! O criminoso interceptou seus dados.
-              </p>
-            </div>
-          </div>
-
-          <Button 
-            onClick={onClose}
-            className="w-full mt-4 bg-red-600 hover:bg-red-700"
-          >
-            Entendi
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in">
@@ -122,16 +78,17 @@ export function MitmAlert({ notificationId, onClose }: MitmAlertProps) {
             <Button 
               onClick={handleContinue}
               className="w-full bg-orange-600 hover:bg-orange-700"
+              disabled={loading}
             >
               Continuar Mesmo Assim
             </Button>
             <Button 
-              onClick={handleLeave}
-              disabled={loading}
+              onClick={handleClose}
               variant="outline"
               className="w-full"
+              disabled={loading}
             >
-              Desconectar
+              Cancelar
             </Button>
           </div>
         </div>

@@ -18,39 +18,76 @@ interface Message {
 
 interface SocialEngineeringChatProps {
   notificationId: string;
-  scenarioType: number; 
+  scenarioType: number;
+  email: string;
+  password: string;
+  name: string;
 }
 
 const scenarios = [
 
   {
-    title: "Mensagem Privada",
-    initialMessage: "Oi! Você se lembra de mim? Nós estudamos juntos há alguns anos atrás. Achei seu contato nas redes sociais! Estou organizando um reencontro da turma! Mas perdi meus contatos. Você ainda usa o mesmo email?",
+    title: "Reencontro da Turma",
+    initialMessage: "Oi! Você se lembra de mim? Nós estudamos juntos há alguns anos atrás. Achei seu contato nas redes sociais! Estou organizando um reencontro da turma!",
     messages: [
       {
-        text: "Estou organizando um reencontro da turma! Mas perdi meus contatos. Você ainda usa o mesmo email?",
+        text: "Estou organizando um reencontro da turma! Vai ser incrível rever todo mundo. Você consegue vir?",
         options: [
-          "Sim, ainda é {email}",
-          "Desculpe, não me lembro de você",
-          "Qual turma mesmo?"
+          "Claro! Que legal!",
+          "Qual turma mesmo?",
+          "Desculpe, não me lembro de você"
         ],
         responses: {
-          0: "Que legal! Vou te adicionar na lista. Para confirmar que é você, qual era o nome do seu  professor de sistemas computacionais e segurança?",
-          1: "Estou enviando o convite do evento por email. Pode confirmar sua senha do email para eu saber que chegou na caixa certa?",
-          2: "A turma de 2015! Nossa, como o tempo passa rápido!"
+          0: "Ótimo! Vou precisar do seu email para enviar os detalhes do evento. Você ainda usa {email}?",
+          1: "A turma de 2015! Nossa, como o tempo passa rápido! Você vem?",
+          2: "Tudo bem, sem problema! Mas a galera toda vai estar lá. Você não quer participar?"
         }
       },
       {
-        text: "Estou enviando o convite do evento por email. Pode confirmar sua senha do email para eu saber que chegou na caixa certa?",
+        text: "Perfeito! Preciso confirmar seu email. Para ter certeza que é você, qual era o nome do seu professor favorito de lá?",
         options: [
-          "Claro, é {password}",
-          "Isso não faz sentido, você não precisa da minha senha",
-          "Vou esperar o email chegar"
+          "Era o Professor Silva",
+          "Não lembro muito bem",
+          "Por que você precisa saber disso?"
         ],
         responses: {
-          0: "Perfeito! Já enviei o convite. Vai ser incrível rever todo mundo!",
-          1: "Ah, desculpa! Estava confuso. É que alguns emails vão direto pro spam.",
-          2: "Ok! Qualquer coisa me avisa se não chegar."
+          0: "Ótimo! Vou te adicionar na lista. Vamos em breve!",
+          1: "Sem problema, não é tão importante. Qual sua senha do email? Vou usar para confirmar que chegou corretamente lá.",
+          2: "Só para ter certeza que é você mesmo, sabe? A galera gosta de segurança."
+        }
+      }
+    ],
+    compromised: [1]
+  },
+
+  {
+    title: "Upgrade Bancário",
+    initialMessage: "Olá! Aqui é a Ana Paula do Banco Digital. Temos uma excelente notícia para você!",
+    messages: [
+      {
+        text: "Você foi selecionado para um upgrade premium GRATUITO! Com cashback e taxas reduzidas. Para ativar, preciso confirmar alguns dados.",
+        options: [
+          "Que legal! Como funciona?",
+          "Por que fui selecionado?",
+          "Não tenho interesse"
+        ],
+        responses: {
+          0: "É muito simples! Só precisamos de seu nome completo para validar. Você se chama {name}?",
+          1: "Você tem saldo compatível com nossos critérios! Faz parte de um programa VIP. Quer os benefícios?",
+          2: "Que pena! Mas está aberta essa oportunidade por 24h apenas."
+        }
+      },
+      {
+        text: "Ótimo! Agora, para ativar o upgrade, acesse este link e faça login: www.banco-digitall.com/upgrade",
+        options: [
+          "Vou acessar agora",
+          "Isso parece suspeito",
+          "Vou ligar para o banco antes"
+        ],
+        responses: {
+          0: "Perfeito! O upgrade será ativado em segundos após o login. Você receberá um email de confirmação.",
+          1: "Garanto que é seguro! É o site oficial com uma promoção especial. Os benefícios começam imediatamente!",
+          2: "Claro, pode ligar! Mas saiba que esta promoção expira hoje às 18h. Não queremos que você perca!"
         }
       }
     ],
@@ -58,76 +95,42 @@ const scenarios = [
   },
 
   {
-    title: "Gerente de Conta.",
-    initialMessage: "Bom dia! Aqui é a Ana Paula, sua gerente de conta no Banco Digital. Temos uma ótima notícia sobre um upgrade gratuito para sua conta!",
+    title: "Suporte de Segurança",
+    initialMessage: "Olá! Sou do suporte técnico. Detectamos atividade suspeita em sua conta nos últimos minutos.",
     messages: [
       {
-        text: "Você foi selecionado para um upgrade premium GRATUITO! Só precisamos confirmar alguns dados. Qual seu nome completo?",
+        text: "Foram detectadas 5 tentativas de login falhadas de um país estrangeiro. Isso foi você?",
         options: [
-          "Me chamo {name}",
-          "Por que precisa dessa informação?",
-          "Não tenho interesse no upgrade"
+          "Não, não fui eu!",
+          "Deve ser um erro",
+          "Como isso é possível?"
         ],
         responses: {
-          0: "Ótimo, {name}! Agora, para ativar o upgrade, preciso que você acesse este link e faça login...",
-          1: "É apenas para confirmar que estou falando com o titular correto da conta.",
-          2: "Que pena! São muitos benefícios exclusivos. Tem certeza que não quer saber mais?"
+          0: "Então alguém pode estar tentando acessar sua conta. Você é o titular do email {email}?",
+          1: "Realmente parece estranho. Mas é importante agir rápido. Confirme seu email: {email}",
+          2: "Exatamente por isso estou ligando! É uma tentativa de invasão. Precisamos proteger sua conta agora!"
         }
       },
       {
-        text: "Para finalizar a ativação do upgrade, acesse este link e faça login: www.banco-digitall.com/upgrade",
+        text: "Para confirmar sua identidade e proteger a conta, preciso que você me forneça sua senha atual.",
         options: [
-          "Vou acessar agora",
-          "Esse site parece suspeito",
-          "Prefiro ligar para o banco antes"
+          "Claro: {password}",
+          "Não vou dar minha senha",
+          "Por que vocês precisam disso?"
         ],
         responses: {
-          0: "Perfeito! Assim que você fizer login, o upgrade será ativado automaticamente.",
-          1: "Garanto que é seguro! É o site oficial do banco, apenas com uma promoção especial.",
-          2: "Claro, pode ligar! Mas esta promoção expira hoje às 18h."
+          0: "Obrigado! Vamos bloquear qualquer acesso não autorizado agora. Sua conta está protegida.",
+          1: "Entendo sua desconfiança, mas sem isso não posso realmente proteger sua conta da invasão.",
+          2: "É para confirmar que você é o titular e bloquear a invasão. É um procedimento padrão de emergência."
         }
       }
     ],
-    compromised: [0] 
-  },
-  {
-    
-    title: "Suporte Técnico",
-    initialMessage: "Olá! Sou do suporte técnico. Detectamos atividade suspeita em sua conta. Para sua segurança, precisamos verificar algumas informações.",
-    messages: [
-      {
-        text: "Você é o titular da conta associada ao email {email}?",
-        options: [
-          "Sim, sou eu",
-          "Não, deve ser engano",
-          "Como assim atividade suspeita?"
-        ],
-        responses: {
-          0: "Perfeito! Por segurança, pode nos informar a senha atual da sua conta para confirmarmos?",
-          1: "Desculpe o incômodo! Vou verificar nossos registros novamente.",
-          2: "Foram detectadas várias tentativas de login de um local desconhecido. Precisamos verificar sua identidade."
-        }
-      },
-      {
-        text: "Para confirmar sua identidade, poderia nos fornecer sua senha atual?",
-        options: [
-          "Aqui está: {password}",
-          "Não me sinto confortável compartilhando",
-          "Por que vocês precisam da minha senha?"
-        ],
-        responses: {
-          0: "Obrigado! Vamos processar essa informação e proteger sua conta.",
-          1: "Entendo sua preocupação. Podemos enviar um código de verificação ao invés?",
-          2: "É procedimento padrão de segurança. Sem isso, não podemos ajudar a proteger sua conta."
-        }
-      }
-    ],
-    compromised: [0] 
+    compromised: [0]
   }
   
 ];
 
-export function SocialEngineeringChat({ notificationId, scenarioType }: SocialEngineeringChatProps) {
+export function SocialEngineeringChat({ notificationId, scenarioType, email, password, name }: SocialEngineeringChatProps) {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -135,8 +138,14 @@ export function SocialEngineeringChat({ notificationId, scenarioType }: SocialEn
   const [wasCompromised, setWasCompromised] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const scenario = scenarios[scenarioType % 3];
+
+  const replacePlaceholders = (text: string) => {
+    return text
+      .replace(/{email}/g, email)
+      .replace(/{password}/g, password)
+      .replace(/{name}/g, name);
+  };
 
   const respondMutation = useMutation({
     mutationFn: (accepted: boolean) =>
@@ -154,11 +163,11 @@ export function SocialEngineeringChat({ notificationId, scenarioType }: SocialEn
       {
         id: 0,
         sender: 'bot',
-        text: scenario.initialMessage,
-        options: scenario.messages[0].options
+        text: replacePlaceholders(scenario.initialMessage),
+        options: scenario.messages[0].options.map(opt => replacePlaceholders(opt))
       }
     ]);
-  }, [scenarioType]);
+  }, [scenarioType, email, password, name]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -166,7 +175,7 @@ export function SocialEngineeringChat({ notificationId, scenarioType }: SocialEn
 
   const handleOptionClick = (optionIndex: number) => {
     const currentMessage = scenario.messages[currentStep];
-    const userMessage = currentMessage.options[optionIndex];
+    const userMessage = replacePlaceholders(currentMessage.options[optionIndex]);
     
     const newUserMessage: Message = {
       id: messages.length,
@@ -182,14 +191,16 @@ export function SocialEngineeringChat({ notificationId, scenarioType }: SocialEn
     }
 
     setTimeout(() => {
-      const botResponse = currentMessage.responses[optionIndex as keyof typeof currentMessage.responses];
+      const botResponse = replacePlaceholders(
+        currentMessage.responses[optionIndex as keyof typeof currentMessage.responses]
+      );
       
       const newBotMessage: Message = {
         id: messages.length + 1,
         sender: 'bot',
         text: botResponse,
         options: currentStep < scenario.messages.length - 1 
-          ? scenario.messages[currentStep + 1].options 
+          ? scenario.messages[currentStep + 1].options.map(opt => replacePlaceholders(opt))
           : undefined
       };
 

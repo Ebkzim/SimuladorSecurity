@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { AlertCircle, Zap } from "lucide-react";
 
 interface SessionHijackingAlertProps {
@@ -10,16 +10,15 @@ interface SessionHijackingAlertProps {
 
 export function SessionHijackingAlert({ notificationId, onClose }: SessionHijackingAlertProps) {
   const [loading, setLoading] = useState(false);
-  const [revealed, setRevealed] = useState(false);
 
   const handleAllow = async () => {
     setLoading(true);
-    setRevealed(true);
     await apiRequest('POST', '/api/notification/respond', { 
       notificationId, 
       accepted: true 
     });
-    setTimeout(() => onClose(), 300);
+    await queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
+    onClose();
   };
 
   const handleBlock = async () => {
@@ -28,52 +27,10 @@ export function SessionHijackingAlert({ notificationId, onClose }: SessionHijack
       notificationId, 
       accepted: false 
     });
-    setTimeout(() => onClose(), 300);
+    await queryClient.invalidateQueries({ queryKey: ['/api/game-state'] });
+    onClose();
   };
 
-  if (revealed) {
-    return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-6 max-w-md w-full border-2 border-red-500">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h2 className="text-xl font-bold text-red-600">Sessão Sequestrada!</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded border border-red-200">
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                <strong>O que aconteceu:</strong> Um criminoso roubou seu cookie/token de sessão e se fez passar por você.
-              </p>
-
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                <strong>Como conseguiu:</strong> Interceptando sua conexão Wi-Fi ou através de malware.
-              </p>
-
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                <strong>Resultado:</strong> O criminoso acessou sua conta como se fosse você, sem precisar da senha.
-              </p>
-            </div>
-
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded border border-red-200">
-              <p className="text-sm text-red-800 dark:text-red-200">
-                ✗ Você permitiu o acesso. Sua sessão foi comprometida!
-              </p>
-            </div>
-          </div>
-
-          <Button 
-            onClick={onClose}
-            className="w-full mt-4 bg-red-600 hover:bg-red-700"
-          >
-            Entendi
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in">
@@ -129,14 +86,15 @@ export function SessionHijackingAlert({ notificationId, onClose }: SessionHijack
             <Button 
               onClick={handleAllow}
               className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
             >
               Permitir Este Login
             </Button>
             <Button 
               onClick={handleBlock}
-              disabled={loading}
               variant="outline"
               className="w-full text-red-600"
+              disabled={loading}
             >
               Bloquear Sessão
             </Button>

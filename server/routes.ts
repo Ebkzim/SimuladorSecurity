@@ -71,7 +71,7 @@ function calculatePasswordStrength(password: string): number {
   
   const hasAllRequirements = hasLowercase && hasUppercase && hasNumber && hasSpecial;
   if (!hasAllRequirements && strength >= 80) {
-    strength = 79; // Limita a 79 se não tiver todos os requisitos
+    strength = 79;
   }
   
   return Math.min(strength, 100);
@@ -97,16 +97,16 @@ function getAttackSuccessChance(attackId: string, gameState: any): number {
     measures.passwordVault;
   
   const allConfigurationsValid = 
-    passwordStrength >= 80 && // Senha forte configurada
-    config.ipWhitelist?.enabled && // IP Whitelist ativo
-    (config.ipWhitelist?.allowedIPs?.length ?? 0) > 0 && // Pelo menos 1 IP na whitelist
-    (config.trustedDevices?.devices?.length ?? 0) > 0 && // Pelo menos 1 dispositivo confiável
-    (config.loginAlerts?.emailAlerts || config.loginAlerts?.smsAlerts) && // Alertas configurados
-    config.smsBackup?.verified && // SMS backup verificado
-    (gameState.casualUser.passwordVault?.length ?? 0) >= 3; // Pelo menos 3 senhas no vault
+    passwordStrength >= 80 &&
+    config.ipWhitelist?.enabled &&
+    (config.ipWhitelist?.allowedIPs?.length ?? 0) > 0 &&
+    (config.trustedDevices?.devices?.length ?? 0) > 0 &&
+    (config.loginAlerts?.emailAlerts || config.loginAlerts?.smsAlerts) &&
+    config.smsBackup?.verified &&
+    (gameState.casualUser.passwordVault?.length ?? 0) >= 3;
   
   if (allMeasuresActive && allConfigurationsValid) {
-    return 0; // 0% de chance = IMPOSSÍVEL!
+    return 0;
   }
   
   let baseChance = 70;
@@ -305,6 +305,13 @@ function createNotification(attackId: string, gameState: any) {
       ctaType: 'mitm_alert',
       attackType: 'man_in_the_middle',
     },
+    zero_day_exploit: {
+      type: 'security_alert',
+      title: 'Alerta de Segurança Crítica',
+      message: 'Múltiplas tentativas de exploração de vulnerabilidade detectadas. Seu acesso pode estar em risco extremo.',
+      requiresAction: false,
+      attackType: 'zero_day_exploit',
+    },
   };
   
   const template = notifications[attackId] || notifications.phishing;
@@ -480,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password,
         securityMeasures: {
           ...currentState.casualUser.securityMeasures,
-          strongPassword: strength >= 80, // Ativa se força >= 80% (todos os requisitos)
+          strongPassword: strength >= 80,
         },
         securityConfig: {
           ...currentState.casualUser.securityConfig,
@@ -632,7 +639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...currentState.casualUser,
         securityConfig: {
           ...currentState.casualUser.securityConfig,
-          recoveryEmail: { email, verified: false }, // Aguardando confirmação
+          recoveryEmail: { email, verified: false },
         },
       };
 
@@ -799,6 +806,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/phishing/respond", async (req, res) => {
+    try {
+      const { notificationId, email, password, accepted } = req.body;
+      
+      if (!notificationId) {
+        return res.status(400).json({ error: "Notification ID is required" });
+      }
+
+      const currentState = getGameState(req.session);
+      const notification = currentState.notifications.find((n) => n.id === notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+
+      const emailMatches = email.toLowerCase() === (currentState.casualUser.email || '').toLowerCase();
+      const passwordMatches = password === currentState.casualUser.password;
+      const credentialsMatch = emailMatches || passwordMatches;
+
+      const updatedNotifications = currentState.notifications.map((n) =>
+        n.id === notificationId
+          ? { ...n, isActive: false, userFellFor: credentialsMatch }
+          : n
+      );
+
+      let accountCompromised = currentState.casualUser.accountCompromised;
+      let attacksSuccessful = currentState.hacker.attacksSuccessful;
+
+      if (credentialsMatch) {
+        accountCompromised = true;
+        attacksSuccessful += 1;
+      }
+
+      const updatedUser = {
+        ...currentState.casualUser,
+        accountCompromised,
+      };
+
+      const tempState = {
+        ...currentState,
+        casualUser: updatedUser,
+      };
+
+      const newVulnerability = calculateVulnerability(tempState);
+
+      const gameState = updateGameState(req.session, {
+        notifications: updatedNotifications,
+        casualUser: updatedUser,
+        hacker: {
+          ...currentState.hacker,
+          attacksSuccessful,
+        },
+        vulnerabilityScore: newVulnerability,
+      });
+
+      res.json({
+        emailMatches,
+        passwordMatches,
+        credentialsMatch,
+        gameState,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to respond to phishing" });
+    }
+  });
+
   app.post("/api/notification/respond", async (req, res) => {
     try {
       const result = respondToNotificationSchema.safeParse(req.body);
@@ -834,13 +907,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'man_in_the_middle',
       ];
       
-      if (accepted && notification.type === 'phishing') {
+
+      if (accepted && (notification as any).attackType === 'malware_injection') {
+        accountCompromised = true;
+        attacksSuccessful += 1;
+      } else if (accepted && notification.type === 'phishing') {
         accountCompromised = true;
         attacksSuccessful += 1;
       } else if (accepted && notification.type === 'social_engineering') {
         accountCompromised = true;
       } else if (accepted && notification.type === 'suspicious_login') {
         accountCompromised = true;
+      }
+      
+
+      if ((notification as any).attackType === 'zero_day_exploit') {
+        const measures = currentState.casualUser.securityMeasures;
+        const config = currentState.casualUser.securityConfig || {};
+        const passwordStrength = calculatePasswordStrength(currentState.casualUser.password || '');
+        const hasAuthenticator = measures.authenticatorApp;
+        const hasTwoFactor = measures.twoFactorAuth;
+        const hasIPWhitelist = measures.ipWhitelist && config.ipWhitelist?.enabled && (config.ipWhitelist?.allowedIPs?.length ?? 0) > 0;
+        const hasSessionManagement = measures.sessionManagement;
+        
+        const hasStrongDefenses = hasAuthenticator && hasTwoFactor && hasIPWhitelist && hasSessionManagement;
+        
+        if (!hasStrongDefenses) {
+          accountCompromised = true;
+          attacksSuccessful += 1;
+        }
       }
       
       if (accepted && ATTACK_SCENARIOS.includes(notification.type)) {

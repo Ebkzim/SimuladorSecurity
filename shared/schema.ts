@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const securitySetupFlowSchema = z.object({
   twoFactorAuth: z.object({
-    step: z.number().default(0), // 0: not started, 1: choose method, 2: enter code, 3: save recovery codes, 4: complete
+    step: z.number().default(0),
     method: z.enum(['app', 'sms']).optional(),
     code: z.string().optional(),
     completed: z.boolean().default(false),
@@ -73,7 +73,7 @@ export const securityConfigSchema = z.object({
 });
 
 export const attackFlowSchema = z.object({
-  step: z.number().default(0), // 0: not started, 1: recon, 2: execution, 3: outcome
+  step: z.number().default(0),
   tool: z.string().optional(),
   command: z.string().optional(),
   progress: z.number().default(0),
@@ -97,7 +97,7 @@ export const gameStateSchema = z.object({
     email: z.string().optional(),
     password: z.string().optional(),
     accountCreated: z.boolean().default(false),
-    accountCreationStep: z.number().default(0), // 0: not started, 1: profile, 2: credentials, 3: complete
+    accountCreationStep: z.number().default(0), 
     securityMeasures: z.object({
       twoFactorAuth: z.boolean().default(false),
       strongPassword: z.boolean().default(false),
@@ -133,7 +133,7 @@ export const gameStateSchema = z.object({
     isActive: z.boolean().default(true),
     requiresAction: z.boolean().default(false),
     userFellFor: z.boolean().optional(),
-    ctaLabel: z.string().optional(), // "Saber Mais", "Confirmar", etc
+    ctaLabel: z.string().optional(),
     ctaType: z.enum(['phishing_learn_more', 'confirm_2fa', 'confirm_email', 'confirm_email_verification']).optional(),
     scenarioIndex: z.number().min(0).max(2).optional(),
     passwordStrength: z.number().optional(),

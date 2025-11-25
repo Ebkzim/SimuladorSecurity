@@ -179,6 +179,9 @@ export function NotificationsCenter({ gameState }: NotificationsCenterProps) {
                     key={notification.id}
                     notificationId={notification.id}
                     scenarioType={notification.scenarioIndex ?? 0}
+                    email={gameState.casualUser.email || ''}
+                    password={gameState.casualUser.password || ''}
+                    name={gameState.casualUser.name || ''}
                   />
                 );
               }
@@ -262,7 +265,7 @@ export function NotificationsCenter({ gameState }: NotificationsCenterProps) {
                                 className="flex-1"
                               >
                                 <AlertTriangle className="mr-2 h-4 w-4" />
-                                {notification.ctaLabel || 'Saber Mais'}
+                                {notification.ctaLabel || 'Ver'}
                               </Button>
                               <Button
                                 size="sm"
@@ -327,8 +330,11 @@ export function NotificationsCenter({ gameState }: NotificationsCenterProps) {
                     <h4 className="font-medium text-sm">{notification.title}</h4>
                     {notification.userFellFor !== undefined && (
                       <Badge 
-                        variant={notification.userFellFor ? "destructive" : "default"}
-                        className="text-xs"
+                        className={`text-xs font-semibold ${
+                          notification.userFellFor 
+                            ? "bg-green-100 text-green-700 border-green-300" 
+                            : "bg-red-100 text-red-700 border-red-300"
+                        }`}
                       >
                         {notification.userFellFor ? "Aceito" : "Recusado"}
                       </Badge>
