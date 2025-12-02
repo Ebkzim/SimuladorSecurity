@@ -1,10 +1,6 @@
-🛡️ Simulador Security
-
-Um simulador interativo para treinar identificação de golpes, engenharia social e boas práticas de segurança digital.
-
 Acesse o Sistema
 Link: https://simuladorsecurity.onrender.com/
 
-O sistema está hospedado no Render (plano gratuito).
+O sistema está hospedado no Render(plano gratuito).
 Por isso, ao acessar, pode ser necessário aguardar alguns segundos enquanto o serviço inicia novamente.
-Basta esperar — o sistema abrirá normalmente.
+Basta esperar, e o sistema abrirá normalmente.
