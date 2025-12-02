@@ -28,36 +28,40 @@ const scenarios = [
 
   {
     title: "Reencontro da Turma",
-    initialMessage: "Oi! Você se lembra de mim? Nós estudamos juntos há alguns anos atrás. Achei seu contato nas redes sociais! Estou organizando um reencontro da turma!",
+    initialMessage: "Oi! Você se lembra de mim? Nós estudamos juntos! Estou organizando um reencontro da turma... Você topa vir? Preciso do seu email para te enviar o convite oficial",
+
     messages: [
       {
-        text: "Estou organizando um reencontro da turma! Vai ser incrível rever todo mundo. Você consegue vir?",
+        text: "Você topa vir? Preciso do seu email para te enviar o convite oficial.",
         options: [
-          "Claro! Que legal!",
-          "Qual turma mesmo?",
-          "Desculpe, não me lembro de você"
+          "Claro! Meu email é {email}",
+          "Que legal! Quando vai ser?",
+          "Desculpa, não estou lembrando de você"
         ],
         responses: {
-          0: "Ótimo! Vou precisar do seu email para enviar os detalhes do evento. Você ainda usa {email}?",
-          1: "A turma de 2015! Nossa, como o tempo passa rápido! Você vem?",
-          2: "Tudo bem, sem problema! Mas a galera toda vai estar lá. Você não quer participar?"
+          0: "Ótimo! Já anotei aqui. Agora, para liberar seu acesso ao portal do evento, preciso da sua senha. Qual é?",
+          1: "Vai ser daqui duas semanas! Para te mandar os detalhes certinhos, eu preciso da sua senha",
+          2: "Sem problema! O reencontro vai ser bem descontraído. Me passa seu email ou senha para eu te enviar o convite?"
         }
       },
+
       {
-        text: "Perfeito! Preciso confirmar seu email. Para ter certeza que é você, qual era o nome do seu professor favorito de lá?",
+        text: "Beleza! Digite sua senha para cadastrar no portal do evento.",
         options: [
-          "Era o Professor Silva",
-          "Não lembro muito bem",
-          "Por que você precisa saber disso?"
+          "Tudo bem, é {password}",
+          "Por que eu preciso te informar minha senha?",
+          "Prefiro não dizer"
         ],
         responses: {
-          0: "Ótimo! Vou te adicionar na lista. Vamos em breve!",
-          1: "Sem problema, não é tão importante. Qual sua senha do email? Vou usar para confirmar que chegou corretamente lá.",
-          2: "Só para ter certeza que é você mesmo, sabe? A galera gosta de segurança."
+          0: "Perfeito! Senha cadastrada. Você vai receber no email o link para acessar o portal ",
+          1: "É só para você conseguir acessar a lista de presença, fotos e novidades do reencontro. Sem a senha, o portal não libera a entrada.",
+          2: "Tudo bem, sem problemas! Você ainda pode receber o convite, mas não terá acesso ao portal exclusivo."
         }
       }
     ],
-    compromised: [1]
+
+   
+    compromised: [[], [0]]
   },
 
   {
@@ -65,33 +69,34 @@ const scenarios = [
     initialMessage: "Olá! Aqui é a Ana Paula do Banco Digital. Temos uma excelente notícia para você!",
     messages: [
       {
-        text: "Você foi selecionado para um upgrade premium GRATUITO! Com cashback e taxas reduzidas. Para ativar, preciso confirmar alguns dados.",
+        text: "Você foi selecionado para um upgrade premium GRATUITO! Com cashback de até 20% e taxas reduzidas. Para ativar rápido, confirme seus dados.",
         options: [
-          "Que legal! Como funciona?",
-          "Por que fui selecionado?",
+          "Que legal! Quer meu nome?",
+          "Parece bom demais para ser verdade",
           "Não tenho interesse"
         ],
         responses: {
-          0: "É muito simples! Só precisamos de seu nome completo para validar. Você se chama {name}?",
-          1: "Você tem saldo compatível com nossos critérios! Faz parte de um programa VIP. Quer os benefícios?",
-          2: "Que pena! Mas está aberta essa oportunidade por 24h apenas."
+          0: "Perfeito! Seu nome é {name}? E seu email cadastrado é {email}? Só para confirmar mesmo.",
+          1: "Entendo a desconfiança, mas é totalmente real! A promoção é só pra hoje. Quer receber o upgrade?",
+          2: "Que pena! Perdeu uma ótima oportunidade então."
         }
       },
       {
-        text: "Ótimo! Agora, para ativar o upgrade, acesse este link e faça login: www.banco-digitall.com/upgrade",
+        text: "Ótimo! Agora, para ativar o upgrade rápido, acesse este link e faça seu login com as credenciais: www.banco-digitall.com/upgrade",
         options: [
-          "Vou acessar agora",
-          "Isso parece suspeito",
-          "Vou ligar para o banco antes"
+          "Vou acessar e fazer login lá",
+          "Por que não faz direto no app oficial?",
+          "Essa URL parece estranha"
         ],
         responses: {
-          0: "Perfeito! O upgrade será ativado em segundos após o login. Você receberá um email de confirmação.",
-          1: "Garanto que é seguro! É o site oficial com uma promoção especial. Os benefícios começam imediatamente!",
-          2: "Claro, pode ligar! Mas saiba que esta promoção expira hoje às 18h. Não queremos que você perca!"
+          0: "Excelente! É só você colocar seu email {email} e senha {password} lá que o upgrade ativa em segundos. Ótimo negócio!",
+          1: "Porque o app demora mais! Este link é direto da promoção, mais rápido. Só fazer login com seus dados e pronto!",
+          2: "É o link oficial da promoção, não se preocupe! Vamos lá, aproveita que falta pouco tempo. Coloca email e senha aí!"
         }
       }
     ],
-    compromised: [0]
+    
+    compromised: [[], [0]]
   },
 
   {
@@ -99,32 +104,33 @@ const scenarios = [
     initialMessage: "Olá! Sou do suporte técnico. Detectamos atividade suspeita em sua conta nos últimos minutos.",
     messages: [
       {
-        text: "Foram detectadas 5 tentativas de login falhadas de um país estrangeiro. Isso foi você?",
+        text: "Foram detectadas 5 tentativas de login falhadas vindo de um país estrangeiro. Você fez essas tentativas?",
         options: [
-          "Não, não fui eu!",
-          "Deve ser um erro",
-          "Como isso é possível?"
+          "Não! Fui invadido?",
+          "Deve ser algum erro do sistema",
+          "Que estranho, como isso aconteceu?"
         ],
         responses: {
-          0: "Então alguém pode estar tentando acessar sua conta. Você é o titular do email {email}?",
-          1: "Realmente parece estranho. Mas é importante agir rápido. Confirme seu email: {email}",
-          2: "Exatamente por isso estou ligando! É uma tentativa de invasão. Precisamos proteger sua conta agora!"
+          0: "Isso é preocupante. Alguém pode estar tentando invadir sua conta. Você é o titular do email {email}?",
+          1: "Estranho mesmo! Mas temos que agir rápido antes que vejam sua senha. Confirme seu email: {email}",
+          2: "Por isso estou te ligando! É uma tentativa de invasão real. Precisamos bloquear sua conta AGORA!"
         }
       },
       {
-        text: "Para confirmar sua identidade e proteger a conta, preciso que você me forneça sua senha atual.",
+        text: "Para proteger sua conta e bloquear os invasores, preciso que você me diga sua senha. Isso é necessário para confirmar sua identidade.",
         options: [
-          "Claro: {password}",
-          "Não vou dar minha senha",
-          "Por que vocês precisam disso?"
+          "Tá certo, é: {password}",
+          "Não vou dar minha senha pra ninguém",
+          "Por que vocês precisam da minha senha?"
         ],
         responses: {
-          0: "Obrigado! Vamos bloquear qualquer acesso não autorizado agora. Sua conta está protegida.",
-          1: "Entendo sua desconfiança, mas sem isso não posso realmente proteger sua conta da invasão.",
-          2: "É para confirmar que você é o titular e bloquear a invasão. É um procedimento padrão de emergência."
+          0: "Perfeito! Obrigado. Vamos bloquear os acessos não autorizados imediatamente. Sua conta está segura agora.",
+          1: "Entendo, mas sem confirmar sua senha não consigo bloquear a invasão. Você prefere perder sua conta?",
+          2: "É um procedimento padrão de segurança em emergências. Confia em mim, preciso disso pra você não ser hackeado."
         }
       }
     ],
+    
     compromised: [0]
   }
   
@@ -138,6 +144,7 @@ export function SocialEngineeringChat({ notificationId, scenarioType, email, pas
   const [wasCompromised, setWasCompromised] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const compromisedRef = useRef(false);
   const scenario = scenarios[scenarioType % 3];
 
   const replacePlaceholders = (text: string) => {
@@ -185,8 +192,15 @@ export function SocialEngineeringChat({ notificationId, scenarioType, email, pas
 
     setMessages(prev => [...prev, newUserMessage]);
 
-    const isCompromised = scenario.compromised.includes(optionIndex);
+    
+    let isCompromised = false;
+    const compromisedAtStep = scenario.compromised[currentStep];
+    if (Array.isArray(compromisedAtStep)) {
+      isCompromised = compromisedAtStep.includes(optionIndex);
+    }
+    
     if (isCompromised) {
+      compromisedRef.current = true;
       setWasCompromised(true);
     }
 
@@ -211,7 +225,8 @@ export function SocialEngineeringChat({ notificationId, scenarioType, email, pas
       } else {
         setChatEnded(true);
         setTimeout(() => {
-          respondMutation.mutate(isCompromised);
+          
+          respondMutation.mutate(compromisedRef.current);
         }, 2000);
       }
     }, 1000);
